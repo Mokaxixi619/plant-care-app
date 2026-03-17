@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🌸 鲜花绿植智能体</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; max-width: 430px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Tab Bar */
+.tab-bar { display: flex; background: #fff; border-top: 1px solid #eee; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
+.tab-item { flex: 1; padding: 8px 0; text-align: center; cursor: pointer; transition: color 0.2s; color: #999; font-size: 10px; }
+.tab-item.active { color: #4CAF50; }
+.tab-icon { font-size: 24px; display: block; }
+.tab-label { margin-top: 2px; }
+
+/* Header */
+.header { background: linear-gradient(135deg, #4CAF50, #66BB6A); padding: 50px 20px 25px; text-align: center; color: #fff; }
+.header h1 { font-size: 26px; font-weight: 700; }
+.header p { font-size: 14px; opacity: 0.9; margin-top: 5px; }
+
+/* Pages */
+.page { display: none; flex: 1; padding-bottom: 70px; }
+.page.active { display: flex; flex-direction: column; }
+
+/* Home Cards */
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
+.card { background: #fff; border-radius: 16px; padding: 24px 16px; text-align: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: transform 0.2s, box-shadow 0.2s; }
+.card:active { transform: scale(0.96); }
+.card-icon { font-size: 40px; }
+.card-title { font-size: 16px; font-weight: 600; margin-top: 10px; }
+.card-desc { font-size: 12px; color: #888; margin-top: 5px; }
+
+/* Identify Page */
+.identify-content { padding: 16px; flex: 1; }
+.photo-area { background: #fff; border-radius: 16px; padding: 40px; text-align: center; margin-bottom: 16px; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.photo-area img { width: 200px; height: 200px; object-fit: cover; border-radius: 16px; }
+.photo-placeholder { font-size: 60px; opacity: 0.3; }
+.photo-hint { color: #999; margin-top: 10px; font-size: 14px; }
+.btn-group { display: flex; gap: 12px; }
+.btn { flex: 1; background: #4CAF50; color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.btn:active { background: #388E3C; }
+.result-card { background: #fff; border-radius: 16px; padding: 20px; margin-top: 16px; }
+.result-name { font-size: 22px; font-weight: 700; color: #4CAF50; }
+.result-sci { font-size: 14px; color: #999; font-style: italic; margin-top: 3px; }
+.result-conf { font-size: 13px; color: #bbb; margin-top: 3px; }
+.care-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid #f0f0f0; }
+.care-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+.care-item { font-size: 13px; color: #555; padding: 4px 0; }
+.loading { text-align: center; padding: 30px; font-size: 18px; }
+
+/* Care Page */
+.care-content { padding: 16px; flex: 1; overflow-y: auto; }
+.plant-card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.plant-name { font-size: 18px; font-weight: 600; }
+.plant-detail { font-size: 13px; color: #888; margin-top: 3px; }
+.plant-actions { display: flex; flex-direction: column; gap: 6px; }
+.action-btn { padding: 6px 12px; border-radius: 8px; border: none; font-size: 13px; cursor: pointer; color: #fff; }
+.water-btn { background: #2196F3; }
+.fertilize-btn { background: #FF9800; }
+.add-plant-btn { background: #4CAF50; color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; }
+.section-title { font-size: 17px; font-weight: 600; margin-bottom: 12px; }
+
+/* Chat Page */
+.chat-content { flex: 1; display: flex; flex-direction: column; }
+.chat-messages { flex: 1; overflow-y: auto; padding: 16px; }
+.message { max-width: 80%; padding: 12px 16px; border-radius: 18px; margin-bottom: 10px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
+.bot-msg { background: #fff; align-self: flex-start; border-bottom-left-radius: 4px; }
+.user-msg { background: #4CAF50; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+.suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 10px; }
+.suggestion-btn { background: #fff; border: 1px solid #4CAF50; color: #4CAF50; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; }
+.chat-input-area { display: flex; gap: 10px; padding: 12px 16px; background: #fff; border-top: 1px solid #eee; }
+.chat-input { flex: 1; border: 1px solid #ddd; border-radius: 20px; padding: 10px 16px; font-size: 14px; outline: none; }
+.chat-input:focus { border-color: #4CAF50; }
+.send-btn { background: #4CAF50; color: #fff; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; cursor: pointer; font-size: 14px; }
+.typing { color: #999; font-size: 13px; padding: 5px 16px; }
+
+/* Toast */
+.toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 12px 24px; border-radius: 10px; font-size: 14px; z-index: 999; display: none; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- Home -->
+<div class="page active" id="page-home">
+  <div class="header">
+    <h1>🌸 鲜花绿植智能体</h1>
+    <p>您的植物养护小助手</p>
+  </div>
+  <div class="cards">
+    <div class="card" onclick="switchTab(1)">
+      <div class="card-icon">📷</div>
+      <div class="card-title">植物识别</div>
+      <div class="card-desc">拍照识别植物种类</div>
+    </div>
+    <div class="card" onclick="switchTab(2)">
+      <div class="card-icon">📅</div>
+      <div class="card-title">养护日历</div>
+      <div class="card-desc">制定专属养护计划</div>
+    </div>
+    <div class="card" onclick="switchTab(3)">
+      <div class="card-icon">💬</div>
+      <div class="card-title">AI 对话</div>
+      <div class="card-desc">智能解答养护问题</div>
+    </div>
+    <div class="card" onclick="showToast('🚧 即将上线')">
+      <div class="card-icon">🚨</div>
+      <div class="card-title">植物急诊</div>
+      <div class="card-desc">快速诊断植物问题</div>
+    </div>
+  </div>
+</div>
+
+<!-- Identify -->
+<div class="page" id="page-identify">
+  <div class="header"><h1>📷 植物识别</h1></div>
+  <div class="identify-content">
+    <div class="photo-area" id="photoArea">
+      <div class="photo-placeholder" id="photoPlaceholder">🌿</div>
+      <div class="photo-hint" id="photoHint">拍照或选择图片识别植物</div>
+      <img id="previewImg" style="display:none;" />
+    </div>
+    <div id="identifyResult"></div>
+    <div class="btn-group">
+      <button class="btn" onclick="pickImage()">📸 拍照</button>
+      <button class="btn" onclick="pickImage()">🖼️ 相册</button>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleImage(event)" />
+  </div>
+</div>
+
+<!-- Care -->
+<div class="page" id="page-care">
+  <div class="header"><h1>📅 养护日历</h1></div>
+  <div class="care-content">
+    <div class="section-title">我的植物</div>
+    <div id="plantList"></div>
+    <button class="add-plant-btn" onclick="addPlant()">+ 添加植物</button>
+  </div>
+</div>
+
+<!-- Chat -->
+<div class="page" id="page-chat">
+  <div class="header" style="padding: 40px 20px 15px;"><h1>💬 AI 对话</h1></div>
+  <div class="chat-content">
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="suggestions" id="suggestions"></div>
+    <div id="typingIndicator" class="typing" style="display:none;">🌿 植物小绿正在思考...</div>
+    <div class="chat-input-area">
+      <input class="chat-input" id="chatInput" placeholder="问我植物养护问题..." onkeydown="if(event.key==='Enter')sendChat()" />
+      <button class="send-btn" onclick="sendChat()">发送</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-item active" onclick="switchTab(0)"><span class="tab-icon">🏠</span><span class="tab-label">首页</span></div>
+  <div class="tab-item" onclick="switchTab(1)"><span class="tab-icon">📷</span><span class="tab-label">识别</span></div>
+  <div class="tab-item" onclick="switchTab(2)"><span class="tab-icon">🌿</span><span class="tab-label">养护</span></div>
+  <div class="tab-item" onclick="switchTab(3)"><span class="tab-icon">💬</span><span class="tab-label">对话</span></div>
+</div>
+
+<script>
+// === Tab Navigation ===
+const pages = ['page-home','page-identify','page-care','page-chat'];
+function switchTab(idx) {
+  pages.forEach((p,i) => {
+    document.getElementById(p).classList.toggle('active', i===idx);
+  });
+  document.querySelectorAll('.tab-item').forEach((t,i) => {
+    t.classList.toggle('active', i===idx);
+  });
+}
+
+// === Toast ===
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 1500);
+}
+
+// === Demo Plants Data ===
+const DEMO_PLANTS = [
+  { name:'绿萝', sci:'Epipremnum aureum', conf:0.95, care:{water:'每周1-2次，保持土壤湿润', light:'喜阴，避免直射阳光', temp:'15-30°C'}, tips:['黄叶多因过度浇水','可水培','净化空气'] },
+  { name:'吊兰', sci:'Chlorophytum comosum', conf:0.92, care:{water:'每周1次，见干见湿', light:'散光或半阴', temp:'15-25°C'}, tips:['吸收甲醛','耐旱','易繁殖'] },
+  { name:'多肉植物', sci:'Echeveria', conf:0.89, care:{water:'每10-15天1次', light:'充足阳光', temp:'15-25°C'}, tips:['宁干勿湿','需要光照','夏季休眠'] },
+  { name:'君子兰', sci:'Clivia miniata', conf:0.87, care:{water:'每周1-2次', light:'散光', temp:'15-25°C'}, tips:['开花需要温差','夏季休眠','每年换盆'] },
+  { name:'虎皮兰', sci:'Sansevieria trifasciata', conf:0.85, care:{water:'每2周1次', light:'适应强光或阴暗', temp:'15-30°C'}, tips:['耐旱','净化空气','易养护'] },
+];
+
+// === Identify ===
+function pickImage() { document.getElementById('fileInput').click(); }
+function handleImage(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    document.getElementById('previewImg').src = ev.target.result;
+    document.getElementById('previewImg').style.display = 'block';
+    document.getElementById('photoPlaceholder').style.display = 'none';
+    document.getElementById('photoHint').style.display = 'none';
+    simulateIdentify();
+  }; reader.readAsDataURL(file);
+}
+function simulateIdentify() {
+  document.getElementById('identifyResult').innerHTML = '<div class="loading">🔍 识别中...</div>';
+  setTimeout(() => {
+    const p = DEMO_PLANTS[Math.floor(Math.random()*DEMO_PLANTS.length)];
+    document.getElementById('identifyResult').innerHTML = `
+      <div class="result-card">
+        <div class="result-name">${p.name}</div>
+        <div class="result-sci">${p.sci}</div>
+        <div class="result-conf">置信度: ${(p.conf*100).toFixed(1)}%</div>
+        <div class="care-section">
+          <div class="care-title">💧 养护建议</div>
+          <div class="care-item">浇水: ${p.care.water}</div>
+          <div class="care-item">光照: ${p.care.light}</div>
+          <div class="care-item">温度: ${p.care.temp}</div>
+          ${p.tips.map(t=>'<div class="care-item">💡 '+t+'</div>').join('')}
+        </div>
+      </div>`;
+  }, 1500);
+}
+
+// === Care Calendar ===
+let myPlants = [
+  { name:'绿萝', waterFreq:3, fertilizeFreq:30, lastWater: new Date() },
+  { name:'吊兰', waterFreq:2, fertilizeFreq:30, lastWater: new Date() },
+  { name:'多肉', waterFreq:7, fertilizeFreq:60, lastWater: new Date() },
+];
+function renderPlants() {
+  document.getElementById('plantList').innerHTML = myPlants.map((p,i) => `
+    <div class="plant-card">
+      <div>
+        <div class="plant-name">🌱 ${p.name}</div>
+        <div class="plant-detail">浇水: 每${p.waterFreq}天 · 施肥: 每${p.fertilizeFreq}天</div>
+      </div>
+      <div class="plant-actions">
+        <button class="action-btn water-btn" onclick="waterPlant(${i})">💧 浇水</button>
+        <button class="action-btn fertilize-btn" onclick="showToast('已施肥 ✅')">🧪 施肥</button>
+      </div>
+    </div>`).join('');
+}
+function waterPlant(i) { myPlants[i].lastWater = new Date(); showToast(myPlants[i].name + ' 浇水完成 💧'); }
+function addPlant() {
+  const name = prompt('请输入植物名称：');
+  if(name) { myPlants.push({name, waterFreq:3, fertilizeFreq:30, lastWater:new Date()}); renderPlants(); showToast('添加成功 🌱'); }
+}
+renderPlants();
+
+// === Chat ===
+let chatHistory = [{role:'assistant', text:'您好！我是植物小绿🌿 有什么可以帮您的？'}];
+const SUGGESTIONS = ['如何浇水？','叶子发黄怎么办？','需要施肥吗？','多久晒一次太阳？'];
+
+function renderChat() {
+  const el = document.getElementById('chatMessages');
+  el.innerHTML = chatHistory.map(m => `<div class="message ${m.role==='assistant'?'bot-msg':'user-msg'}">${m.text}</div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+function renderSuggestions() {
+  if(chatHistory.length <= 1) {
+    document.getElementById('suggestions').innerHTML = SUGGESTIONS.map(s => `<button class="suggestion-btn" onclick="askSuggestion('${s}')">${s}</button>`).join('');
+  } else {
+    document.getElementById('suggestions').innerHTML = '';
+  }
+}
+function askSuggestion(text) { document.getElementById('chatInput').value = text; sendChat(); }
+
+// 本地智能回复（不调用API，纯前端Demo）
+const KNOWLEDGE = {
+  '浇水': '浇水要遵循"见干见湿"原则 💧\n\n1. 用手指戳土壤2-3cm深，干了再浇\n2. 浇就浇透，盆底流水为止\n3. 夏天频率高，冬天少浇\n4. 早晨或傍晚浇，避免中午\n\n不同植物差异很大，告诉我你养的是什么？',
+  '发黄': '叶子发黄常见原因 🍂\n\n1. 💧 浇水过多 — 最常见！根部腐烂\n2. ☀️ 光照不足 — 搬到明亮处试试\n3. 🧪 缺肥 — 生长期每月施一次\n4. 🌡️ 温差大 — 避免空调直吹\n5. 🪴 需要换盆 — 根系太密了\n\n先检查浇水频率，80%的黄叶都是水多了！',
+  '施肥': '施肥小贴士 🧪\n\n1. 生长期（春夏）每2-4周施一次\n2. 休眠期（冬天）不施肥\n3. 薄肥勤施，宁淡勿浓\n4. 施肥后浇透水，避免烧根\n5. 开花植物用磷钾肥，观叶用氮肥\n\n新手推荐用缓释肥，不容易出错 👍',
+  '阳光': '光照指南 ☀️\n\n🌞 喜阳：多肉、仙人掌、月季 → 南窗/阳台\n🌤️ 散光：绿萝、吊兰、文竹 → 明亮客厅\n🌙 耐阴：虎皮兰、龟背竹 → 北窗也行\n\n注意：\n- 夏天避免暴晒（会晒伤）\n- 冬天多晒（日照不足）\n- 每周转一次盆，让它均匀受光',
+  '绿萝': '绿萝养护全攻略 🌿\n\n这是最好养的室内植物之一！\n\n💧 浇水：每周1-2次，土干了再浇\n☀️ 光照：散光最佳，忌暴晒\n🌡️ 温度：15-30°C，怕冷\n✂️ 修剪：太长了就剪，还能水培\n\n常见问题：\n- 叶子发黄 → 可能浇多了\n- 徒长 → 光照不够\n- 长得慢 → 春夏施点薄肥',
+  '多肉': '多肉养护秘诀 🌵\n\n最怕的就是"爱心泛滥"浇太多水！\n\n💧 浇水：夏天每2周，冬天每月（宁干勿湿）\n☀️ 光照：越多越好，颜色才漂亮\n🌡️ 温度：5-35°C，冬天防冻\n🪴 土壤：颗粒土为主（70%颗粒+30%泥炭）\n\n上色秘诀：大温差 + 强光 + 控水 = 果冻色 ✨',
+};
+
+function getSmartReply(text) {
+  for(const [key, reply] of Object.entries(KNOWLEDGE)) {
+    if(text.includes(key)) return reply;
+  }
+  const fallbacks = [
+    '这是个好问题！🤔\n\n能告诉我你养的是什么植物吗？不同植物养护差异很大，知道具体品种才能给出最准确的建议～',
+    '嗯，让我想想 🌿\n\n建议先观察一下：\n1. 土壤是干还是湿？\n2. 放在什么位置？\n3. 最近有换环境吗？\n\n这些信息能帮我更好地判断～',
+    '收到！这个问题很常见 😊\n\n一般来说，大部分室内植物需要：\n- 适当浇水（见干见湿）\n- 适量光照（散光为主）\n- 良好通风\n- 定期施肥\n\n你可以试试告诉我具体植物名字，我给你定制方案！',
+  ];
+  return fallbacks[Math.floor(Math.random()*fallbacks.length)];
+}
+
+function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim(); if(!text) return;
+  chatHistory.push({role:'user', text});
+  input.value = '';
+  renderChat(); renderSuggestions();
+  document.getElementById('typingIndicator').style.display = 'block';
+  setTimeout(() => {
+    const reply = getSmartReply(text);
+    chatHistory.push({role:'assistant', text: reply});
+    document.getElementById('typingIndicator').style.display = 'none';
+    renderChat();
+  }, 800 + Math.random()*1200);
+}
+
+renderChat(); renderSuggestions();
+</script>
+</body>
+</html>

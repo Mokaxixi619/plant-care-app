@@ -1,37 +1,230 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>plant-care-app</title>
-    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
-    <style id="expo-reset">
-      /* These styles make the body full-height */
-      html,
-      body {
-        height: 100%;
-      }
-      /* These styles disable body scrolling if you are using <ScrollView> */
-      body {
-        overflow: hidden;
-      }
-      /* These styles make the root element full-height */
-      #root {
-        display: flex;
-        height: 100%;
-        flex: 1;
-      }
-    </style>
-  <link rel="icon" href="favicon.ico" /></head>
-
-  <body>
-    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
-    <!-- The root element for your Expo app. -->
-    <div id="root"></div>
-  <script src="_expo/static/js/web/index-0f057c21e6719158923f36fe7df2b542.js" defer></script>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🌸 鲜花绿植智能体</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; max-width: 430px; margin: 0 auto; min-height: 100vh; }
+    
+    /* Header */
+    .header { background: linear-gradient(135deg, #4CAF50, #66BB6A); padding: 50px 20px 25px; text-align: center; color: #fff; }
+    .header h1 { font-size: 24px; font-weight: 700; }
+    .header p { opacity: 0.9; margin-top: 5px; }
+    
+    /* Pages */
+    .page { display: none; padding: 20px; min-height: calc(100vh - 120px); }
+    .page.active { display: block; }
+    
+    /* Cards */
+    .card { background: #fff; border-radius: 15px; padding: 20px; margin-bottom: 15px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card-icon { font-size: 40px; }
+    .card-title { font-size: 18px; font-weight: 600; margin-top: 10px; color: #333; }
+    .card-desc { font-size: 12px; color: #888; margin-top: 5px; }
+    
+    /* Grid */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    
+    /* Buttons */
+    .btn { background: #4CAF50; color: #fff; padding: 15px 30px; border-radius: 10px; border: none; font-size: 16px; width: 100%; margin-top: 10px; }
+    .btn-outline { background: #fff; color: #4CAF50; border: 2px solid #4CAF50; }
+    
+    /* Identify */
+    .identify-area { background: #fff; border-radius: 15px; padding: 40px 20px; text-align: center; margin-bottom: 20px; }
+    .identify-icon { font-size: 60px; }
+    
+    /* Chat */
+    .chat-list { background: #fff; border-radius: 15px; padding: 15px; max-height: 60vh; overflow-y: auto; }
+    .chat-msg { margin-bottom: 15px; max-width: 80%; }
+    .chat-msg.bot { margin-right: auto; }
+    .chat-msg.user { margin-left: auto; text-align: right; }
+    .chat-bubble { display: inline-block; padding: 12px 16px; border-radius: 15px; font-size: 14px; line-height: 1.5; }
+    .chat-msg.bot .chat-bubble { background: #fff; color: #333; border: 1px solid #eee; }
+    .chat-msg.user .chat-bubble { background: #4CAF50; color: #fff; }
+    
+    /* Input */
+    .input-area { display: flex; gap: 10px; margin-top: 15px; }
+    .input-area input { flex: 1; padding: 12px 15px; border: 1px solid #ddd; border-radius: 25px; font-size: 14px; }
+    .input-area button { background: #4CAF50; color: #fff; padding: 12px 20px; border-radius: 25px; border: none; }
+    
+    /* Care */
+    .plant-item { background: #fff; border-radius: 10px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .plant-info h4 { font-size: 16px; }
+    .plant-info p { font-size: 12px; color: #888; }
+    .plant-actions { display: flex; gap: 8px; }
+    .plant-btn { padding: 8px 12px; border-radius: 5px; font-size: 12px; color: #fff; }
+    .water-btn { background: #2196F3; }
+    .fert-btn { background: #FF9800; }
+    
+    /* Tab Bar */
+    .tab-bar { display: flex; background: #fff; border-top: 1px solid #eee; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; z-index: 100; padding: 8px 0; padding-bottom: env(safe-area-inset-bottom, 20px); }
+    .tab-item { flex: 1; text-align: center; cursor: pointer; color: #999; font-size: 10px; }
+    .tab-item.active { color: #4CAF50; }
+    .tab-icon { font-size: 22px; display: block; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>🌸 鲜花绿植智能体</h1>
+    <p>您的植物养护小助手</p>
+  </div>
+  
+  <!-- Home Page -->
+  <div id="page-home" class="page active">
+    <div class="grid">
+      <div class="card" onclick="showPage('identify')">
+        <div class="card-icon">📷</div>
+        <div class="card-title">植物识别</div>
+        <div class="card-desc">拍照识别植物种类</div>
+      </div>
+      <div class="card" onclick="showPage('care')">
+        <div class="card-icon">📅</div>
+        <div class="card-title">养护日历</div>
+        <div class="card-desc">制定养护计划</div>
+      </div>
+      <div class="card" onclick="showPage('chat')">
+        <div class="card-icon">💬</div>
+        <div class="card-title">AI 对话</div>
+        <div class="card-desc">智能解答问题</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🚨</div>
+        <div class="card-title">植物急诊</div>
+        <div class="card-desc">快速诊断问题</div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Identify Page -->
+  <div id="page-identify" class="page">
+    <div class="identify-area">
+      <div class="identify-icon">📷</div>
+      <p style="margin-top:15px;color:#666;">拍照识别植物</p>
+    </div>
+    <button class="btn" onclick="alert('请用手机相机拍照上传识别')">📸 拍照识别</button>
+    <button class="btn btn-outline" onclick="alert('请从相册选择图片')">🖼️ 相册选择</button>
+  </div>
+  
+  <!-- Care Page -->
+  <div id="page-care" class="page">
+    <h3 style="margin-bottom:15px;">我的植物</h3>
+    <div class="plant-item">
+      <div class="plant-info">
+        <h4>🌿 绿萝</h4>
+        <p>浇水: 每3天</p>
+      </div>
+      <div class="plant-actions">
+        <button class="plant-btn water-btn">💧</button>
+        <button class="plant-btn fert-btn">🧪</button>
+      </div>
+    </div>
+    <div class="plant-item">
+      <div class="plant-info">
+        <h4>🌸 吊兰</h4>
+        <p>浇水: 每2天</p>
+      </div>
+      <div class="plant-actions">
+        <button class="plant-btn water-btn">💧</button>
+        <button class="plant-btn fert-btn">🧪</button>
+      </div>
+    </div>
+    <div class="plant-item">
+      <div class="plant-info">
+        <h4>🪴 多肉</h4>
+        <p>浇水: 每10天</p>
+      </div>
+      <div class="plant-actions">
+        <button class="plant-btn water-btn">💧</button>
+        <button class="plant-btn fert-btn">🧪</button>
+      </div>
+    </div>
+    <button class="btn" style="margin-top:20px;">+ 添加植物</button>
+  </div>
+  
+  <!-- Chat Page -->
+  <div id="page-chat" class="page">
+    <div class="chat-list" id="chatList">
+      <div class="chat-msg bot">
+        <div class="chat-bubble">您好！我是植物小绿🌿 有什么可以帮您的？</div>
+      </div>
+    </div>
+    <div class="input-area">
+      <input type="text" id="chatInput" placeholder="问我植物养护问题...">
+      <button onclick="sendChat()">发送</button>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+      <button style="background:#fff;padding:8px 12px;border-radius:15px;border:1px solid #4CAF50;color:#4CAF50;font-size:12px;" onclick="quickAsk('如何浇水？')">如何浇水？</button>
+      <button style="background:#fff;padding:8px 12px;border-radius:15px;border:1px solid #4CAF50;color:#4CAF50;font-size:12px;" onclick="quickAsk('叶子发黄怎么办？')">叶子发黄？</button>
+      <button style="background:#fff;padding:8px 12px;border-radius:15px;border:1px solid #4CAF50;color:#4CAF50;font-size:12px;" onclick="quickAsk('需要施肥吗？')">需要施肥？</button>
+    </div>
+  </div>
+  
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="showPage('home')" data-page="home">
+      <span class="tab-icon">🏠</span>
+      <span>首页</span>
+    </div>
+    <div class="tab-item" onclick="showPage('identify')" data-page="identify">
+      <span class="tab-icon">📷</span>
+      <span>识别</span>
+    </div>
+    <div class="tab-item" onclick="showPage('care')" data-page="care">
+      <span class="tab-icon">📅</span>
+      <span>养护</span>
+    </div>
+    <div class="tab-item" onclick="showPage('chat')" data-page="chat">
+      <span class="tab-icon">💬</span>
+      <span>对话</span>
+    </div>
+  </div>
+  
+  <script>
+    function showPage(page) {
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      // Show selected page
+      document.getElementById('page-' + page).classList.add('active');
+      // Update tab
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      document.querySelector('[data-page="' + page + '"]').classList.add('active');
+    }
+    
+    function sendChat() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      
+      // Add user message
+      const list = document.getElementById('chatList');
+      list.innerHTML += '<div class="chat-msg user"><div class="chat-bubble">' + text + '</div></div>';
+      input.value = '';
+      
+      // Simulate bot response
+      setTimeout(() => {
+        const replies = [
+          '植物养护要因人而异哦～ 能告诉我您的植物是什么品种吗？',
+          '这个问题需要了解更多情况。请问您的植物放在什么环境？',
+          '我明白了！建议保持土壤适度湿润，避免积水。',
+          '根据您的问题，建议适当增加光照，注意通风。'
+        ];
+        const reply = replies[Math.floor(Math.random() * replies.length)];
+        list.innerHTML += '<div class="chat-msg bot"><div class="chat-bubble">' + reply + '</div></div>';
+        list.scrollTop = list.scrollHeight;
+      }, 1000);
+    }
+    
+    function quickAsk(text) {
+      document.getElementById('chatInput').value = text;
+      sendChat();
+    }
+    
+    // Enter to send
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') sendChat();
+    });
+  </script>
 </body>
 </html>
